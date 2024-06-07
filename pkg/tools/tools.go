@@ -9,17 +9,28 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"io"
 	"net/http"
+	"strings"
 )
 
-func GetAddressHexFromPublicKey(publicKeyHex string) (common.Address, error) {
-	publicKeyBytes, err := hexutil.Decode(publicKeyHex)
+func GetAddressFromPublicKey(publicKeyHex string) (common.Address, error) {
+	var processedKey string
+
+	noPref := strings.TrimPrefix(publicKeyHex, "0x")
+	// web3signer doesn't compress keys but its missing leading "04" byte marking it uncompressed key
+	if !strings.HasPrefix("04", noPref) {
+		processedKey = fmt.Sprintf("0x04%s", noPref)
+	} else {
+		processedKey = publicKeyHex
+	}
+
+	publicKeyBytes, err := hexutil.Decode(processedKey)
 	if err != nil {
 		return common.Address{}, fmt.Errorf("invalid public key: %w", err)
 	}
 
 	pubKey, err := crypto.UnmarshalPubkey(publicKeyBytes)
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to unmarshal public key: %w", err)
+		return common.Address{}, fmt.Errorf("failed to unmarshal public key %s : %w", processedKey, err)
 	}
 
 	return crypto.PubkeyToAddress(*pubKey), err

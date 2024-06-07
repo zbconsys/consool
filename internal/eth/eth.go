@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
 )
@@ -32,4 +33,25 @@ func (e *Eth) GetAccountBalance(account common.Address) (*big.Int, error) {
 	}
 
 	return bal, nil
+}
+
+func (e *Eth) GetAccountNonce(account common.Address) (uint64, error) {
+	nonce, err := e.cl.PendingNonceAt(e.ctx, account)
+	if err != nil {
+		return 0, fmt.Errorf("could not get pending nonce of account %s: %w", account.Hex(), err)
+	}
+
+	return nonce, nil
+}
+
+func (e *Eth) SuggestGasPrice() (*big.Int, error) {
+	return e.cl.SuggestGasPrice(e.ctx)
+}
+
+func (e *Eth) ChainID() (*big.Int, error) {
+	return e.cl.ChainID(e.ctx)
+}
+
+func (e *Eth) SendRawTransaction(transaction *types.Transaction) error {
+	return e.cl.SendTransaction(e.ctx, transaction)
 }

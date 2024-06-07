@@ -13,11 +13,12 @@ var (
 )
 
 type ModeType string
-type ModeRunner interface {
-	Run() error
-}
+type ModeRunner func() error
 
-const w3sAddresses ModeType = "w3s-addresses"
+const (
+	w3sAddresses ModeType = "w3s-addresses"
+	w3sSendTx    ModeType = "w3s-send"
+)
 
 type App struct {
 	ctx            context.Context
@@ -39,7 +40,7 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	mds, err := modes.NewModes(ctx)
+	mds, err := modes.NewModes(ctx, conf, ether)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +64,14 @@ func (a *App) Run() error {
 		return ErrModeNotSupported
 	}
 
-	return modeHandler.Run()
+	return modeHandler()
 }
 
 func (a *App) initModes() error {
 	a.availableModes = make(map[ModeType]ModeRunner)
-	a.availableModes[w3sAddresses] = a.modes.W3Signer()
+	// TODO: fix mode initialization override
+	a.availableModes[w3sAddresses] = a.modes.FetchWeb3AddressesFunds()
+	a.availableModes[w3sSendTx] = a.modes.SendFundsFromAccountInWeb3Signer(a.conf.PublicKey, a.conf.SendToAddress)
 
 	return nil
 }
