@@ -89,12 +89,13 @@ func (m *Modes) SendFundsFromAccountInWeb3Signer(publicKey string, toAccount str
 
 		toAddr := common.HexToAddress(toAccount)
 
+		fmt.Println("GAS PRICE: ", gas.String())
 		tx := types.NewTx(&types.LegacyTx{
 			Nonce:    nonce,
 			GasPrice: gas,
 			Gas:      uint64(21000),
 			To:       &toAddr,
-			Value:    big.NewInt(5000000000000000000), // 5 ETH
+			Value:    big.NewInt(1000000000000000000), // 1 ETH
 			Data:     []byte{},
 		})
 
